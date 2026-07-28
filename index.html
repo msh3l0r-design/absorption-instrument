@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>The Absorption Instrument — how a detector unlearns a fault</title>
+<title>The Absorption Instrument: how a detector unlearns a fault</title>
 </head>
 <body>
 <style>
@@ -81,7 +81,7 @@
   <h1>Watch a detector unlearn the fault it was built to catch</h1>
   <p class="lede">An anomaly detector that keeps adapting to its own data stream will, if a slow fault
     is present, absorb that fault into its idea of “normal.” <b>Every number in this instrument is a
-    measurement</b> from our experiment record — drag the sliders and watch it happen.</p>
+    measurement</b> from our experiment record. Drag the sliders and watch it happen.</p>
 </header>
 
 <section class="act">
@@ -97,16 +97,16 @@
   <div class="dials">
     <div class="dial"><div class="n" id="d_cos">—</div><div class="l">cos(displacement, fault direction)</div></div>
     <div class="dial"><div class="n hot" id="d_r">1.00</div><div class="l">retained alarm-growth rate r</div></div>
-    <div class="dial"><div class="n calm" id="d_auc">0.971</div><div class="l">AUC — the dashboard number</div></div>
+    <div class="dial"><div class="n calm" id="d_auc">0.971</div><div class="l">AUC · the dashboard number</div></div>
   </div>
   <p class="note"><b>The trap:</b> at 30% dose the alarm’s growth rate has lost a quarter of its strength
-    (r = 0.74), yet AUC has moved 0.971 → 0.963 — statistically nothing. A fault of margin m is missed
+    (r = 0.74), yet AUC has moved 0.971 → 0.963, which is statistically nothing. A fault of margin m is missed
     whenever r·m &lt; 1. Measured over 3 seeds; displacement alignment cos θ = +0.998.</p>
 </section>
 
 <section class="act">
   <div class="acthead"><span class="actno">ACT II</span><h2>One projection brings it back</h2></div>
-  <p class="actsub">Fault F3 is invisible to the detector. A physics check finds it — until slow sensor
+  <p class="actsub">Fault F3 is invisible to the detector. A physics check finds it, until slow sensor
     drift floods it with false alarms. Drag the drift, then flip the switch.</p>
   <canvas id="c2" width="700" height="330" role="img"
     aria-label="Score distributions of clean and faulty runs overlapping under drift, separating when the projection is enabled"></canvas>
@@ -118,7 +118,7 @@
     <span class="toggle"><input type="checkbox" id="proj" aria-label="enable subspace projection">
       <span class="knob"></span></span>
     <span><span class="txt">Make the statistic blind to the drift direction</span><br>
-      <span class="sub">one linear projection, estimated from the fleet — no labels, no retraining</span></span>
+      <span class="sub">one linear projection, estimated from the fleet; no labels, no retraining</span></span>
   </div>
   <div class="dials">
     <div class="dial"><div class="n hot" id="d_det">0%</div><div class="l">F3 detection under this drift</div></div>
@@ -131,14 +131,14 @@
 </section>
 
 <footer>
-  <div class="t">Provenance — nothing here is illustrative</div>
+  <div class="t">Provenance · nothing here is illustrative</div>
   <ul>
     <li>Dose–response r(dose) and AUC drift: 3-seed gate replication on the Tennessee Eastman benchmark.</li>
     <li>Displacement alignment cos θ = +0.998: registered mechanism experiment, two architectures.</li>
     <li>F3 recovery 0% → 84%: matched-subspace statistic, registered before running; held-out false alarms 11% [6, 19].</li>
     <li>Full experiment log, code, and CSVs: scan the repository QR on the poster.</li>
   </ul>
-  <p>Alotaishan · Zhagypar · Kouzayha · Al-Naffouri — Information Science Lab, KAUST · UCLA Samueli.
+  <p>Alotaishan · Zhagypar · Kouzayha · Al-Naffouri, Information Science Lab, KAUST · UCLA Samueli.
      Qualcomm edge hardware. The scatter geometry is schematic; every dial is measured.</p>
 </footer>
 </main>

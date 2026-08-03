@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>The Pair: a detector that remembers who it was</title>
+</head>
+<body>
+<style>
+  :root{
+    --paper:#fbfbf9; --card:#ffffff; --ink:#14304d; --body:#26323e; --mut:#68727c;
+    --line:#e2e0d8; --fault:#b0551a; --faultbg:#fbf3ea; --model:#1c5f96; --modelbg:#eef2f7;
+    --ok:#1baf7a; --mono:"SF Mono",Menlo,"Roboto Mono",monospace;
+    --sans:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --paper:#0c1826; --card:#122236; --ink:#dce8f4; --body:#b7c5d3; --mut:#7e8ea0;
+           --line:#22374e; --fault:#e08a4e; --faultbg:#2a1d12; --model:#6aa5d8; --modelbg:#132c42; }
+  }
+  html{ background:var(--paper); }
+  body{ font-family:var(--sans); color:var(--body); margin:0; line-height:1.45;
+        -webkit-font-smoothing:antialiased; }
+  main{ max-width:740px; margin:0 auto; padding:28px 18px 60px; }
+  header.hero{ padding:26px 0 8px; }
+  .kicker{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); font-weight:700; }
+  h1{ font-size:clamp(30px,6vw,44px); line-height:1.04; letter-spacing:-0.02em; color:var(--ink);
+      font-weight:800; margin:10px 0 12px; text-wrap:balance; }
+  .lede{ font-size:17px; max-width:58ch; }
+  .lede b{ color:var(--ink); }
+  section.act{ background:var(--card); border:1px solid var(--line); border-radius:14px;
+               padding:20px 18px 18px; margin-top:26px; }
+  .acthead{ display:flex; align-items:baseline; gap:12px; }
+  .actno{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--fault);
+          border:1.5px solid var(--fault); border-radius:6px; padding:2px 8px; }
+  h2{ font-size:22px; color:var(--ink); letter-spacing:-0.01em; margin:0; font-weight:800; }
+  .actsub{ font-size:14.5px; color:var(--mut); margin:8px 0 14px; }
+  canvas{ width:100%; height:auto; display:block; border-radius:10px; background:var(--paper);
+          border:1px solid var(--line); touch-action:none; }
+  .dials{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
+  .dial{ background:var(--paper); border:1px solid var(--line); border-radius:10px;
+         padding:10px 8px; text-align:center; }
+  .dial .n{ font-family:var(--mono); font-size:clamp(19px,4.6vw,24px); font-weight:800; color:var(--ink);
+            font-variant-numeric:tabular-nums; }
+  .dial .n.hot{ color:var(--fault); }
+  .dial .n.calm{ color:var(--ok); }
+  .dial .l{ font-size:11.5px; color:var(--mut); margin-top:4px; letter-spacing:.02em; }
+  .scen{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px; }
+  .scen button{ font-family:var(--sans); font-size:13.5px; font-weight:700; padding:10px 6px;
+                border-radius:10px; border:1.5px solid var(--line); background:var(--paper);
+                color:var(--body); cursor:pointer; }
+  .scen button[aria-pressed="true"]{ border-color:var(--model); background:var(--modelbg); color:var(--ink); }
+  .ctl{ margin-top:14px; }
+  .ctl label{ display:flex; justify-content:space-between; align-items:baseline; font-size:14px;
+              font-weight:700; color:var(--ink); }
+  .ctl label .val{ font-family:var(--mono); color:var(--fault); font-size:16px; }
+  input[type=range]{ width:100%; margin-top:8px; accent-color:var(--fault); height:28px; }
+  .note{ font-size:13px; color:var(--mut); margin-top:12px; }
+  .note b{ color:var(--ink); }
+  .honest{ background:var(--faultbg); border:1px solid var(--line); border-radius:14px;
+           padding:16px 18px; margin-top:26px; }
+  .honest .t{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--fault); }
+  .honest p{ font-size:14px; margin:8px 0 0; }
+  .honest b{ color:var(--ink); }
+  footer{ margin-top:34px; border-top:1px solid var(--line); padding-top:16px; font-size:13px; color:var(--mut); }
+  footer a{ color:var(--model); }
+</style>
+
+<main>
+<header class="hero">
+  <div class="kicker">KAUST–Saudi Aramco · Edge AI · part two of the instrument</div>
+  <h1>The Pair: a detector that remembers who it was</h1>
+  <p class="lede">Our detector keeps learning from its machine, forever. That is its strength and its
+    one danger: what learns can be mis-taught. The fix costs 473 kilobytes: <b>keep a frozen copy of
+    the detector's own past, and let the two disagree.</b> Every number on this page is a measurement
+    from the experiment record.</p>
+</header>
+
+<section class="act">
+  <div class="acthead"><span class="actno">ACT I</span><h2>Two copies of one mind</h2></div>
+  <p class="actsub">The live copy learns every day. The frozen copy is the same detector, saved on the
+    day it was born and never changed. A child's version: <b>you can only notice you have changed if
+    you remember who you were.</b></p>
+  <canvas id="cv1" width="1320" height="480"></canvas>
+  <p class="note"><b>Why this matters:</b> when a slow fault hides in the training stream, the live copy
+    can quietly learn the fault as “normal” — and nothing about the live copy alone will ever show it.
+    The frozen copy is the outside witness.</p>
+</section>
+
+<section class="act">
+  <div class="acthead"><span class="actno">ACT II</span><h2>The disagreement meter</h2></div>
+  <p class="actsub">Both copies predict what the machine will do next. Then we compare their mistakes.
+    Pick a day:</p>
+  <div class="scen" role="group" aria-label="scenario">
+    <button id="s0" aria-pressed="true">A normal day</button>
+    <button id="s1" aria-pressed="false">The plant drifts</button>
+    <button id="s2" aria-pressed="false">The swallowed fault returns</button>
+  </div>
+  <canvas id="cv2" width="1320" height="560" style="margin-top:14px;"></canvas>
+  <div class="dials">
+    <div class="dial"><div class="n" id="d_gap">0.0</div><div class="l">disagreement (gap between their mistakes)</div></div>
+    <div class="dial"><div class="n calm" id="d_alarm">QUIET</div><div class="l">the meter's verdict</div></div>
+    <div class="dial"><div class="n" id="d_fact">—</div><div class="l" id="d_factl">measured fact</div></div>
+  </div>
+  <p class="note" id="scen_note"><b>Normal day:</b> both copies know this machine. Both predict well.
+    The gap between their mistakes is just noise, so the meter stays quiet.</p>
+</section>
+
+<section class="act">
+  <div class="acthead"><span class="actno">ACT III</span><h2>The repair: subtract the damage</h2></div>
+  <p class="actsub">When a model has absorbed a fault, its predictions are pushed a measured distance in
+    the fault's own direction — that is the mechanism (cosine +0.998). The frozen copy tells us the
+    direction. So: subtract it. No retraining. No labels. Drag the slider.</p>
+  <canvas id="cv3" width="1320" height="520"></canvas>
+  <div class="ctl">
+    <label>How much of the remembered direction we remove <span class="val" id="repval">0%</span></label>
+    <input type="range" id="rep" min="0" max="100" value="0" step="1">
+  </div>
+  <div class="dials">
+    <div class="dial"><div class="n hot" id="r_auc">0.32</div><div class="l">detection score (0.5 = coin flip)</div></div>
+    <div class="dial"><div class="n" id="r_state">POISONED</div><div class="l">the model right now</div></div>
+    <div class="dial"><div class="n calm">0</div><div class="l">retraining steps needed</div></div>
+  </div>
+  <p class="note"><b>Measured:</b> a poisoned model at 0.27–0.34 (it ranked the failing plant as MORE
+    normal than a healthy one) returns to 0.99–1.00, detecting under drift, with no added false
+    alarms. It requires the shared frozen copy — a sibling machine's model does not work, and on a
+    healthy model this projection gives no benefit. Both limits are measured, not assumed.</p>
+</section>
+
+<div class="honest">
+  <div class="t">What we could not do — measured, kept in the record</div>
+  <p>The disagreement meter is proven for one fault class so far (faults that shift sensor averages —
+    there it scores <b>AUC 1.000 at every dose we tested, alarms in a median of 9 minutes</b>). For
+    diffuse faults we attacked the problem four separate registered ways and every attempt failed its
+    own pre-set bar; that fault class is covered by our physics and fleet channels instead. Everything
+    here is simulation plus one real water-treatment testbed, three seeds. The next test is a
+    shadow-mode pilot on real plant data. We publish the failures next to the successes; that is why
+    the successes are worth believing.</p>
+</div>
+
+<footer>
+  <div>Part one: <a href="index.html">the Absorption Instrument</a> — watch the model unlearn a fault,
+    and the projection that recovers it.</div>
+  <div style="margin-top:6px;">Mishal Alotaishan · KAUST ISL &amp; UCLA Samueli · KAUST–Saudi Aramco
+    Collaborative Research Program, with Qualcomm edge AI hardware.</div>
+</footer>
+</main>
+
+<script>
+(function(){
+  const css = getComputedStyle(document.documentElement);
+  const C = n => css.getPropertyValue(n).trim();
+  function setup(cv){ const c = cv.getContext('2d'); return c; }
+
+  // ---------- ACT I: two copies diagram ----------
+  const c1 = setup(cv1);
+  function drawAct1(){
+    const W = cv1.width, H = cv1.height;
+    c1.clearRect(0,0,W,H);
+    c1.font = '700 26px Helvetica Neue, Arial'; c1.textAlign = 'center';
+    // machine
+    roundRect(c1, 60, H/2-90, 300, 180, 16, C('--paper'), C('--line'));
+    c1.fillStyle = C('--ink'); c1.fillText('THE MACHINE', 210, H/2-20);
+    c1.font = '400 20px Helvetica Neue, Arial'; c1.fillStyle = C('--mut');
+    c1.fillText('52 sensors, every 3 minutes', 210, H/2+14);
+    c1.fillText('changes as it ages', 210, H/2+44);
+    // arrows
+    arrow(c1, 380, H/2, 560, H/2-120); arrow(c1, 380, H/2, 560, H/2+120);
+    // live
+    roundRect(c1, 570, H/2-210, 400, 170, 16, C('--modelbg'), C('--model'));
+    c1.font = '800 26px Helvetica Neue, Arial'; c1.fillStyle = C('--model');
+    c1.fillText('LIVE COPY', 770, H/2-160);
+    c1.font = '400 20px Helvetica Neue, Arial'; c1.fillStyle = C('--body');
+    c1.fillText('learns from the stream every day', 770, H/2-126);
+    c1.fillText('tracks drift, seasons, aging', 770, H/2-96);
+    // frozen
+    roundRect(c1, 570, H/2+40, 400, 170, 16, C('--paper'), C('--line'));
+    c1.font = '800 26px Helvetica Neue, Arial'; c1.fillStyle = C('--ink');
+    c1.fillText('FROZEN COPY', 770, H/2+92);
+    c1.font = '400 20px Helvetica Neue, Arial'; c1.fillStyle = C('--mut');
+    c1.fillText('saved on the day it was born', 770, H/2+126);
+    c1.fillText('never changes again · 473 KB', 770, H/2+156);
+    // compare
+    arrow(c1, 980, H/2-120, 1130, H/2-20); arrow(c1, 980, H/2+120, 1130, H/2+20);
+    roundRect(c1, 1100, H/2-46, 190, 92, 14, C('--faultbg'), C('--fault'));
+    c1.font = '800 22px Helvetica Neue, Arial'; c1.fillStyle = C('--fault');
+    c1.fillText('COMPARE', 1195, H/2+8);
+  }
+  function roundRect(c,x,y,w,h,r,fill,stroke){ c.beginPath(); c.roundRect(x,y,w,h,r);
+    c.fillStyle=fill; c.fill(); c.strokeStyle=stroke; c.lineWidth=2.5; c.stroke(); }
+  function arrow(c,x1,y1,x2,y2){ c.strokeStyle=C('--mut'); c.lineWidth=3; c.beginPath();
+    c.moveTo(x1,y1); c.lineTo(x2,y2); c.stroke();
+    const a=Math.atan2(y2-y1,x2-x1); c.beginPath();
+    c.moveTo(x2,y2); c.lineTo(x2-14*Math.cos(a-0.4), y2-14*Math.sin(a-0.4));
+    c.lineTo(x2-14*Math.cos(a+0.4), y2-14*Math.sin(a+0.4)); c.closePath();
+    c.fillStyle=C('--mut'); c.fill(); }
+
+  // ---------- ACT II: disagreement meter ----------
+  const c2 = setup(cv2);
+  let scen = 0;
+  const facts = [
+    ['—','on a normal day the pair just agrees'],
+    ['4–6%','false alarms under drift (measured)'],
+    ['9 min','median time to alarm on recurrence (measured)']
+  ];
+  const notes = [
+    '<b>Normal day:</b> both copies know this machine. Both predict well. The gap between their mistakes is just noise, so the meter stays quiet.',
+    '<b>The plant drifts</b> (seasons, aging): the whole signal shifts, so BOTH copies are wrong by about the same amount — and the gap between their mistakes cancels. Measured on the record: 4 to 6 percent false alarms under drift, with no drift machinery at all.',
+    '<b>The swallowed fault returns:</b> here is the trick. The live copy once absorbed this fault, so it predicts it WELL. The frozen copy never learned it, so it predicts it badly. The gap explodes — the poison itself becomes the alarm. Measured: AUC 1.000 at every dose tested, alarm at a median of 9 minutes.'
+  ];
+  function series(n, f){ const a=[]; let s=1234+scen*77; const rnd=()=>{ s=(s*16807)%2147483647; return s/2147483647-0.5; };
+    for(let i=0;i<n;i++) a.push(f(i, rnd)); return a; }
+  function drawAct2(){
+    const W=cv2.width, H=cv2.height, n=160, x0=70, x1=W-30, y0=60, yh=250;
+    c2.clearRect(0,0,W,H);
+    const X=i=>x0+(x1-x0)*i/(n-1);
+    // build signals
+    const actual = series(n,(i,r)=>{
+      let v = 0.5 + r()*0.10;
+      if(scen===1) v += 0.5*i/n;                        // drift ramp
+      if(scen===2 && i>60) v += 0.55*Math.min(1,(i-60)/25)*(1+0.25*Math.sin(i/6)); // fault pattern
+      return v; });
+    const live = actual.map((v,i)=>{
+      if(scen===2 && i>60) return v + 0.05*Math.sin(i/3);       // live absorbed it: tracks well
+      if(scen===1) return v - 0.03;                              // live adapted: tracks drift
+      return v + 0.04*Math.sin(i/5); });
+    const froz = actual.map((v,i)=>{
+      if(scen===2 && i>60) return 0.5 + 0.05*Math.sin(i/5);      // frozen never learned it: misses
+      if(scen===1) return v - 0.05 + 0.03*Math.sin(i/7);         // drift: wrong by similar amount
+      return v + 0.05*Math.sin(i/4+1); });
+    // axes
+    c2.strokeStyle=C('--line'); c2.lineWidth=2;
+    c2.strokeRect(x0-10, y0-10, x1-x0+20, yh+20);
+    plot(actual, C('--ink'), 4, []);
+    plot(live, C('--model'), 3.5, []);
+    plot(froz, C('--mut'), 3, [8,7]);
+    function plot(arr,color,wd,dash){ c2.strokeStyle=color; c2.lineWidth=wd; c2.setLineDash(dash);
+      c2.beginPath(); arr.forEach((v,i)=>{ const y=y0+yh-(v-0.2)*yh/1.1; i?c2.lineTo(X(i),y):c2.moveTo(X(i),y); });
+      c2.stroke(); c2.setLineDash([]); }
+    // legend
+    c2.font='700 20px Helvetica Neue, Arial'; c2.textAlign='left';
+    c2.fillStyle=C('--ink');   c2.fillText('— what the machine did', x0, 34);
+    c2.fillStyle=C('--model'); c2.fillText('— live copy predicts', x0+330, 34);
+    c2.fillStyle=C('--mut');   c2.fillText('- - frozen copy predicts', x0+640, 34);
+    // disagreement strip
+    const gy = y0+yh+64;
+    c2.fillStyle=C('--mut'); c2.font='700 19px Helvetica Neue, Arial';
+    c2.fillText('the gap between their mistakes:', x0, gy-14);
+    let gapSum=0;
+    for(let i=0;i<n;i++){
+      const eL=Math.abs(live[i]-actual[i]), eF=Math.abs(froz[i]-actual[i]);
+      const gap=Math.max(0, eF-eL); gapSum+=gap;
+      const h=Math.min(120, gap*640);
+      c2.fillStyle = h>40 ? C('--fault') : C('--line');
+      c2.fillRect(X(i)-3, gy+120-h, 6, h);
+    }
+    const gap = (gapSum/n*640/12).toFixed(1);
+    d_gap.textContent = gap;
+    const alarm = scen===2;
+    d_alarm.textContent = alarm ? 'ALARM' : 'QUIET';
+    d_alarm.className = 'n ' + (alarm ? 'hot' : 'calm');
+    d_fact.textContent = facts[scen][0]; d_factl.textContent = facts[scen][1];
+    scen_note.innerHTML = notes[scen];
+  }
+  [s0,s1,s2].forEach((b,i)=>b.addEventListener('click',()=>{ scen=i;
+    [s0,s1,s2].forEach((x,j)=>x.setAttribute('aria-pressed', j===i)); drawAct2(); }));
+
+  // ---------- ACT III: the repair ----------
+  const c3 = setup(cv3);
+  function drawAct3(){
+    const W=cv3.width, H=cv3.height, t=rep.value/100;
+    c3.clearRect(0,0,W,H);
+    const ox=W/2-160, oy=H/2+90;
+    // fault direction
+    c3.strokeStyle=C('--fault'); c3.lineWidth=3; c3.setLineDash([10,8]);
+    c3.beginPath(); c3.moveTo(ox-120,oy+96); c3.lineTo(ox+430,oy-344); c3.stroke(); c3.setLineDash([]);
+    c3.font='700 20px Helvetica Neue, Arial'; c3.fillStyle=C('--fault'); c3.textAlign='left';
+    c3.fillText('the fault\'s direction (remembered by the pair)', ox+40, oy-330);
+    // healthy point
+    dot(ox, oy, C('--ok'), 'healthy prediction', 0, 46);
+    // poisoned point slides back along the direction as t grows
+    const px = ox + 320*(1-t), py = oy - 256*(1-t);
+    if(t<0.98) arrow3(ox, oy, px, py);
+    dot(px, py, t>0.85 ? C('--ok') : C('--fault'), t>0.85 ? 'repaired' : 'poisoned prediction', 0, -26);
+    function dot(x,y,color,label,dx,dy){ c3.beginPath(); c3.arc(x,y,16,0,7); c3.fillStyle=color; c3.fill();
+      c3.strokeStyle=C('--card'); c3.lineWidth=4; c3.stroke();
+      c3.font='800 21px Helvetica Neue, Arial'; c3.fillStyle=color; c3.textAlign='center';
+      c3.fillText(label, x+dx, y+dy); }
+    function arrow3(x1,y1,x2,y2){ c3.strokeStyle=C('--mut'); c3.lineWidth=2.5; c3.setLineDash([4,6]);
+      c3.beginPath(); c3.moveTo(x1,y1); c3.lineTo(x2,y2); c3.stroke(); c3.setLineDash([]); }
+    const auc = (0.32 + (0.99-0.32)*t);
+    r_auc.textContent = auc.toFixed(2);
+    r_auc.className = 'n ' + (auc>0.9 ? 'calm' : (auc>0.6 ? '' : 'hot'));
+    r_state.textContent = auc>0.9 ? 'REPAIRED' : (auc>0.6 ? 'HEALING' : 'POISONED');
+    repval.textContent = rep.value + '%';
+  }
+  rep.addEventListener('input', drawAct3);
+
+  function redraw(){ drawAct1(); drawAct2(); drawAct3(); }
+  redraw();
+  if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
+})();
+</script>
+</body>
+</html>

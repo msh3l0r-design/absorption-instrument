@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>The Pair: a detector that remembers who it was</title>
+<title>Comparing the alarm with an older copy of itself</title>
 </head>
 <body>
 <style>
@@ -68,81 +68,84 @@
 
 <main>
 <header class="hero">
-  <div class="kicker">KAUST–Saudi Aramco · Edge AI · part two of the instrument</div>
-  <h1>The Pair: a detector that remembers who it was</h1>
-  <p class="lede">Our detector keeps learning from its machine, forever. That is its strength and its
-    one danger: what learns can be mis-taught. The fix costs 473 kilobytes: <b>keep a frozen copy of
-    the detector's own past, and let the two disagree.</b> Every number on this page is a measurement
-    from the experiment record.</p>
+  <div class="kicker">A companion to our poster. Second page.</div>
+  <h1>Comparing the alarm with an older copy of itself</h1>
+  <p class="lede">The program never stops learning from its machine. That is what keeps it useful as
+    the machine ages, and it is also the way it can be taught the wrong thing. The fix is simple:
+    <b>save a copy of the program from before it started learning, and keep checking the new one
+    against the old one.</b> Every number on this page is measured from a real experiment.</p>
 </header>
 
 <section class="act">
-  <div class="acthead"><span class="actno">ACT I</span><h2>Two copies of one mind</h2></div>
-  <p class="actsub">The live copy learns every day. The frozen copy is the same detector, saved on the
-    day it was born and never changed. A child's version: <b>you can only notice you have changed if
-    you remember who you were.</b></p>
+  <div class="acthead"><span class="actno">PART 1</span><h2>Two copies of the same program</h2></div>
+  <p class="actsub">One copy keeps learning every day. The other was saved on the first day and is
+    never changed again. You can only tell that you have changed if you remember what you used to
+    be like.</p>
   <canvas id="cv1" width="1320" height="480"></canvas>
-  <p class="note"><b>Why this matters:</b> when a slow fault hides in the training stream, the live copy
-    can quietly learn the fault as “normal” — and nothing about the live copy alone will ever show it.
-    The frozen copy is the outside witness.</p>
+  <p class="note">When a slow problem hides in the data the program learns from, the learning copy
+    can quietly start treating that problem as normal. Nothing about the learning copy on its own
+    will ever show this. The old copy is the only outside witness.</p>
 </section>
 
 <section class="act">
-  <div class="acthead"><span class="actno">ACT II</span><h2>The disagreement meter</h2></div>
-  <p class="actsub">Both copies predict what the machine will do next. Then we compare their mistakes.
-    Pick a day:</p>
+  <div class="acthead"><span class="actno">PART 2</span><h2>Watching the two copies disagree</h2></div>
+  <p class="actsub">Both copies guess what the machine will do next. Then we compare how wrong each
+    guess was. Pick a day and see what happens.</p>
   <div class="scen" role="group" aria-label="scenario">
     <button id="s0" aria-pressed="true">A normal day</button>
-    <button id="s1" aria-pressed="false">The plant drifts</button>
-    <button id="s2" aria-pressed="false">The swallowed fault returns</button>
+    <button id="s1" aria-pressed="false">Everything slowly drifts</button>
+    <button id="s2" aria-pressed="false">The forgotten problem comes back</button>
   </div>
   <canvas id="cv2" width="1320" height="560" style="margin-top:14px;"></canvas>
   <div class="dials">
-    <div class="dial"><div class="n" id="d_gap">0.0</div><div class="l">disagreement (gap between their mistakes)</div></div>
-    <div class="dial"><div class="n calm" id="d_alarm">QUIET</div><div class="l">the meter's verdict</div></div>
-    <div class="dial"><div class="n" id="d_fact">—</div><div class="l" id="d_factl">measured fact</div></div>
+    <div class="dial"><div class="n" id="d_gap">0.0</div><div class="l">how far apart the two copies are</div></div>
+    <div class="dial"><div class="n calm" id="d_alarm">QUIET</div><div class="l">does it raise the alarm?</div></div>
+    <div class="dial"><div class="n" id="d_fact">none</div><div class="l" id="d_factl">what we measured</div></div>
   </div>
-  <p class="note" id="scen_note"><b>Normal day:</b> both copies know this machine. Both predict well.
-    The gap between their mistakes is just noise, so the meter stays quiet.</p>
+  <p class="note" id="scen_note">On a normal day both copies know this machine and both guess well.
+    The small gap between them is just noise, so nothing goes off.</p>
 </section>
 
 <section class="act">
-  <div class="acthead"><span class="actno">ACT III</span><h2>The repair: subtract the damage</h2></div>
-  <p class="actsub">When a model has absorbed a fault, its predictions are pushed a measured distance in
-    the fault's own direction — that is the mechanism (cosine +0.998). The frozen copy tells us the
-    direction. So: subtract it. No retraining. No labels. Drag the slider.</p>
+  <div class="acthead"><span class="actno">PART 3</span><h2>Undoing the damage</h2></div>
+  <p class="actsub">Once the program has learned a problem as normal, its guesses are pushed in one
+    particular direction, and we can measure that direction almost exactly. The old copy is what
+    tells us which way it moved. So we just push it back. The program is not retrained and nobody
+    has to label anything. Drag the slider.</p>
   <canvas id="cv3" width="1320" height="520"></canvas>
   <div class="ctl">
-    <label>How much of the remembered direction we remove <span class="val" id="repval">0%</span></label>
+    <label>How much of the remembered push we take back out <span class="val" id="repval">0%</span></label>
     <input type="range" id="rep" min="0" max="100" value="0" step="1">
   </div>
   <div class="dials">
-    <div class="dial"><div class="n hot" id="r_auc">0.32</div><div class="l">detection score (0.5 = coin flip)</div></div>
-    <div class="dial"><div class="n" id="r_state">POISONED</div><div class="l">the model right now</div></div>
-    <div class="dial"><div class="n calm">0</div><div class="l">retraining steps needed</div></div>
+    <div class="dial"><div class="n hot" id="r_auc">0.32</div><div class="l">how well it spots the problem (0.5 is a coin flip)</div></div>
+    <div class="dial"><div class="n" id="r_state">GONE BLIND</div><div class="l">how the program is doing</div></div>
+    <div class="dial"><div class="n calm">0</div><div class="l">times it had to be retrained</div></div>
   </div>
-  <p class="note"><b>Measured:</b> a poisoned model at 0.27–0.34 (it ranked the failing plant as MORE
-    normal than a healthy one) returns to 0.99–1.00, detecting under drift, with no added false
-    alarms. It requires the shared frozen copy — a sibling machine's model does not work, and on a
-    healthy model this projection gives no benefit. Both limits are measured, not assumed.</p>
+  <p class="note">A program that had gone blind sat at <b>0.32</b>, which means it was rating the
+    failing machine as healthier than a healthy one. Pushing it back brings it to <b>0.79</b>, and
+    that is better than throwing it away and starting again, which only reaches 0.69. It has to be
+    this machine's own old copy. A copy from a neighbouring machine does not work, and on a program
+    that was never damaged this does nothing at all. We measured both of those limits too.</p>
 </section>
 
 <div class="honest">
-  <div class="t">What we could not do — measured, kept in the record</div>
-  <p>The disagreement meter is proven for one fault class so far (faults that shift sensor averages —
-    there it scores <b>AUC 1.000 at every dose we tested, alarms in a median of 9 minutes</b>). For
-    diffuse faults we attacked the problem four separate registered ways and every attempt failed its
-    own pre-set bar; that fault class is covered by our physics and fleet channels instead. Everything
-    here is simulation plus one real water-treatment testbed, three seeds. The next test is a
-    shadow-mode pilot on real plant data. We publish the failures next to the successes; that is why
-    the successes are worth believing.</p>
+  <div class="t">What did not work, kept here on purpose</div>
+  <p>This only works for one family of problems so far. Those are the ones that shift the sensor
+    readings up or down, and for those it works every time we tried, spotting the problem in about
+    9 minutes. There is a second family, where the fault spreads itself thinly across many sensors
+    instead. We tried four different ways to catch those, wrote down beforehand what would count as
+    success, and all four failed. Those are handled by the other two methods on the poster instead.
+    Everything here is a computer model of a plant, run three times over. The next step is to try it
+    on a real one. We keep the failures on the page next to the successes, because that is the only
+    reason the successes are worth anything.</p>
 </div>
 
 <footer>
-  <div>Part one: <a href="index.html">the Absorption Instrument</a> — watch the model unlearn a fault,
-    and the projection that recovers it.</div>
-  <div style="margin-top:6px;">Mishal Alotaishan · KAUST ISL &amp; UCLA Samueli · KAUST–Saudi Aramco
-    Collaborative Research Program, with Qualcomm edge AI hardware.</div>
+  <div>First page: <a href="index.html">an alarm that stops noticing the problem</a>, and the step
+    that gets it back.</div>
+  <div style="margin-top:6px;">Mishal Alotaishan, Ruslan Zhagypar, Nour Kouzayha and Tareq
+    Al-Naffouri. Information Science Lab at KAUST, and UCLA Samueli. Hardware from Qualcomm.</div>
 </footer>
 </main>
 
@@ -162,24 +165,24 @@
     roundRect(c1, 60, H/2-90, 300, 180, 16, C('--paper'), C('--line'));
     c1.fillStyle = C('--ink'); c1.fillText('THE MACHINE', 210, H/2-20);
     c1.font = '400 20px Helvetica Neue, Arial'; c1.fillStyle = C('--mut');
-    c1.fillText('52 sensors, every 3 minutes', 210, H/2+14);
+    c1.fillText('sensors read every 3 minutes', 210, H/2+14);
     c1.fillText('changes as it ages', 210, H/2+44);
     // arrows
     arrow(c1, 380, H/2, 560, H/2-120); arrow(c1, 380, H/2, 560, H/2+120);
     // live
     roundRect(c1, 570, H/2-210, 400, 170, 16, C('--modelbg'), C('--model'));
     c1.font = '800 26px Helvetica Neue, Arial'; c1.fillStyle = C('--model');
-    c1.fillText('LIVE COPY', 770, H/2-160);
+    c1.fillText('THE LEARNING COPY', 770, H/2-160);
     c1.font = '400 20px Helvetica Neue, Arial'; c1.fillStyle = C('--body');
-    c1.fillText('learns from the stream every day', 770, H/2-126);
-    c1.fillText('tracks drift, seasons, aging', 770, H/2-96);
+    c1.fillText('keeps learning every day', 770, H/2-126);
+    c1.fillText('keeps up as the machine ages', 770, H/2-96);
     // frozen
     roundRect(c1, 570, H/2+40, 400, 170, 16, C('--paper'), C('--line'));
     c1.font = '800 26px Helvetica Neue, Arial'; c1.fillStyle = C('--ink');
-    c1.fillText('FROZEN COPY', 770, H/2+92);
+    c1.fillText('THE OLD COPY', 770, H/2+92);
     c1.font = '400 20px Helvetica Neue, Arial'; c1.fillStyle = C('--mut');
-    c1.fillText('saved on the day it was born', 770, H/2+126);
-    c1.fillText('never changes again · 473 KB', 770, H/2+156);
+    c1.fillText('saved on the very first day', 770, H/2+126);
+    c1.fillText('never changes again', 770, H/2+156);
     // compare
     arrow(c1, 980, H/2-120, 1130, H/2-20); arrow(c1, 980, H/2+120, 1130, H/2+20);
     roundRect(c1, 1100, H/2-46, 190, 92, 14, C('--faultbg'), C('--fault'));
@@ -199,14 +202,14 @@
   const c2 = setup(cv2);
   let scen = 0;
   const facts = [
-    ['—','on a normal day the pair just agrees'],
-    ['4–6%','false alarms under drift (measured)'],
-    ['9 min','median time to alarm on recurrence (measured)']
+    ['none','nothing to report on a quiet day'],
+    ['4 to 6','false alarms in every 100, while drifting'],
+    ['9 min','how long it takes to notice']
   ];
   const notes = [
-    '<b>Normal day:</b> both copies know this machine. Both predict well. The gap between their mistakes is just noise, so the meter stays quiet.',
-    '<b>The plant drifts</b> (seasons, aging): the whole signal shifts, so BOTH copies are wrong by about the same amount — and the gap between their mistakes cancels. Measured on the record: 4 to 6 percent false alarms under drift, with no drift machinery at all.',
-    '<b>The swallowed fault returns:</b> here is the trick. The live copy once absorbed this fault, so it predicts it WELL. The frozen copy never learned it, so it predicts it badly. The gap explodes — the poison itself becomes the alarm. Measured: AUC 1.000 at every dose tested, alarm at a median of 9 minutes.'
+    'On a normal day both copies know this machine and both guess well. The small gap between them is just noise, so nothing goes off.',
+    'As the plant slowly drifts with the seasons and with age, everything shifts at once, so both copies are wrong by about the same amount and the gap between them stays small. We measured 4 to 6 false alarms in every 100 while this is happening, without building anything special to handle drift.',
+    'This is the useful part. The learning copy once took this problem on board, so it guesses it very well. The old copy never learned it, so it guesses it badly. The gap between them jumps, and the damage itself becomes the warning. In our tests it caught this every time, in about 9 minutes.'
   ];
   function series(n, f){ const a=[]; let s=1234+scen*77; const rnd=()=>{ s=(s*16807)%2147483647; return s/2147483647-0.5; };
     for(let i=0;i<n;i++) a.push(f(i, rnd)); return a; }
@@ -239,13 +242,13 @@
       c2.stroke(); c2.setLineDash([]); }
     // legend
     c2.font='700 20px Helvetica Neue, Arial'; c2.textAlign='left';
-    c2.fillStyle=C('--ink');   c2.fillText('— what the machine did', x0, 34);
-    c2.fillStyle=C('--model'); c2.fillText('— live copy predicts', x0+330, 34);
-    c2.fillStyle=C('--mut');   c2.fillText('- - frozen copy predicts', x0+640, 34);
+    c2.fillStyle=C('--ink');   c2.fillText('what the machine actually did', x0, 34);
+    c2.fillStyle=C('--model'); c2.fillText('what the learning copy guessed', x0+330, 34);
+    c2.fillStyle=C('--mut');   c2.fillText('what the old copy guessed', x0+640, 34);
     // disagreement strip
     const gy = y0+yh+64;
     c2.fillStyle=C('--mut'); c2.font='700 19px Helvetica Neue, Arial';
-    c2.fillText('the gap between their mistakes:', x0, gy-14);
+    c2.fillText('how far apart the two copies are:', x0, gy-14);
     let gapSum=0;
     for(let i=0;i<n;i++){
       const eL=Math.abs(live[i]-actual[i]), eF=Math.abs(froz[i]-actual[i]);
@@ -275,7 +278,7 @@
     c3.strokeStyle=C('--fault'); c3.lineWidth=3; c3.setLineDash([10,8]);
     c3.beginPath(); c3.moveTo(ox-120,oy+96); c3.lineTo(ox+430,oy-344); c3.stroke(); c3.setLineDash([]);
     c3.font='700 20px Helvetica Neue, Arial'; c3.fillStyle=C('--fault'); c3.textAlign='left';
-    c3.fillText('the fault\'s direction (remembered by the pair)', ox+40, oy-330);
+    c3.fillText('the direction it drifted, remembered by the old copy', ox+40, oy-330);
     // healthy point
     dot(ox, oy, C('--ok'), 'healthy prediction', 0, 46);
     // poisoned point slides back along the direction as t grows
@@ -288,10 +291,10 @@
       c3.fillText(label, x+dx, y+dy); }
     function arrow3(x1,y1,x2,y2){ c3.strokeStyle=C('--mut'); c3.lineWidth=2.5; c3.setLineDash([4,6]);
       c3.beginPath(); c3.moveTo(x1,y1); c3.lineTo(x2,y2); c3.stroke(); c3.setLineDash([]); }
-    const auc = (0.32 + (0.99-0.32)*t);
+    const auc = (0.32 + (0.79-0.32)*t);
     r_auc.textContent = auc.toFixed(2);
-    r_auc.className = 'n ' + (auc>0.9 ? 'calm' : (auc>0.6 ? '' : 'hot'));
-    r_state.textContent = auc>0.9 ? 'REPAIRED' : (auc>0.6 ? 'HEALING' : 'POISONED');
+    r_auc.className = 'n ' + (auc>0.74 ? 'calm' : (auc>0.55 ? '' : 'hot'));
+    r_state.textContent = auc>0.74 ? 'FIXED' : (auc>0.55 ? 'GETTING BETTER' : 'GONE BLIND');
     repval.textContent = rep.value + '%';
   }
   rep.addEventListener('input', drawAct3);

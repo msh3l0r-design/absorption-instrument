@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>The Absorption Instrument: how a detector unlearns a fault</title>
+<title>An alarm that stops noticing the problem</title>
 </head>
 <body>
 <style>
@@ -23,14 +23,15 @@
   :root[data-theme="light"]{ --paper:#fbfbf9; --card:#ffffff; --ink:#14304d; --body:#26323e; --mut:#68727c;
            --line:#e2e0d8; --fault:#b0551a; --faultbg:#fbf3ea; --model:#1c5f96; --modelbg:#eef2f7; }
   html{ background:var(--paper); }
-  body{ font-family:var(--sans); color:var(--body); margin:0; line-height:1.45;
+  body{ font-family:var(--sans); color:var(--body); margin:0; line-height:1.5;
         -webkit-font-smoothing:antialiased; }
   main{ max-width:740px; margin:0 auto; padding:28px 18px 60px; }
   header.hero{ padding:26px 0 8px; }
   .kicker{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); font-weight:700; }
   h1{ font-size:clamp(30px,6vw,44px); line-height:1.04; letter-spacing:-0.02em; color:var(--ink);
       font-weight:800; margin:10px 0 12px; text-wrap:balance; }
-  .lede{ font-size:17px; max-width:58ch; }
+  .lede{ font-size:17.5px; max-width:58ch; }
+  .lede p{ margin:0 0 12px; }
   .lede b{ color:var(--ink); }
   section.act{ background:var(--card); border:1px solid var(--line); border-radius:14px;
                padding:20px 18px 18px; margin-top:26px; }
@@ -38,12 +39,12 @@
   .actno{ font-family:var(--mono); font-size:13px; font-weight:700; color:var(--fault);
           border:1.5px solid var(--fault); border-radius:6px; padding:2px 8px; }
   h2{ font-size:22px; color:var(--ink); letter-spacing:-0.01em; margin:0; font-weight:800; }
-  .actsub{ font-size:14.5px; color:var(--mut); margin:8px 0 14px; }
+  .actsub{ font-size:15px; color:var(--mut); margin:8px 0 14px; }
   canvas{ width:100%; height:auto; display:block; border-radius:10px; background:var(--paper);
           border:1px solid var(--line); touch-action:none; }
   .ctl{ margin-top:14px; }
-  .ctl label{ display:flex; justify-content:space-between; align-items:baseline; font-size:14px;
-              font-weight:700; color:var(--ink); }
+  .ctl label{ display:flex; justify-content:space-between; align-items:baseline; font-size:14.5px;
+              font-weight:700; color:var(--ink); gap:10px; }
   .ctl label .val{ font-family:var(--mono); color:var(--fault); font-size:16px; }
   input[type=range]{ width:100%; margin-top:8px; accent-color:var(--fault); height:28px; }
   .dials{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
@@ -53,11 +54,11 @@
             font-variant-numeric:tabular-nums; }
   .dial .n.hot{ color:var(--fault); }
   .dial .n.calm{ color:var(--ok); }
-  .dial .l{ font-size:11.5px; color:var(--mut); margin-top:4px; letter-spacing:.02em; }
+  .dial .l{ font-size:12px; color:var(--mut); margin-top:4px; letter-spacing:.02em; line-height:1.3; }
   .switchrow{ display:flex; align-items:center; gap:12px; margin-top:14px; background:var(--modelbg);
               border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
-  .switchrow .txt{ font-size:14.5px; color:var(--ink); font-weight:700; }
-  .switchrow .sub{ font-size:12.5px; color:var(--mut); font-weight:400; margin-top:2px; }
+  .switchrow .txt{ font-size:15px; color:var(--ink); font-weight:700; }
+  .switchrow .sub{ font-size:13px; color:var(--mut); font-weight:400; margin-top:2px; }
   .toggle{ position:relative; width:56px; height:30px; flex:none; }
   .toggle input{ opacity:0; width:100%; height:100%; position:absolute; margin:0; cursor:pointer; }
   .knob{ position:absolute; inset:0; background:var(--line); border-radius:15px; transition:background .2s; pointer-events:none; }
@@ -66,89 +67,109 @@
   .toggle input:checked + .knob{ background:var(--ok); }
   .toggle input:checked + .knob::after{ transform:translateX(26px); }
   .toggle input:focus-visible + .knob{ outline:2px solid var(--model); outline-offset:2px; }
-  .note{ font-size:13px; color:var(--mut); margin-top:12px; }
+  .note{ font-size:14.5px; color:var(--body); margin-top:14px; background:var(--paper);
+         border-left:3px solid var(--fault); border-radius:0 8px 8px 0; padding:11px 13px; }
   .note b{ color:var(--ink); }
-  footer{ margin-top:34px; border-top:1px solid var(--line); padding-top:16px; font-size:13px; color:var(--mut); }
+  footer{ margin-top:34px; border-top:1px solid var(--line); padding-top:16px; font-size:14px; color:var(--mut); }
   footer .t{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--ink); }
   footer ul{ margin:8px 0 0 18px; padding:0; }
-  footer li{ margin-top:4px; }
+  footer li{ margin-top:6px; }
   @media (prefers-reduced-motion: reduce){ .knob, .knob::after{ transition:none; } }
 </style>
 
 <main>
 <header class="hero">
-  <div class="kicker">KAUST–Saudi Aramco · Edge AI · live companion to the poster</div>
-  <h1>Watch a detector unlearn the fault it was built to catch</h1>
-  <p class="lede">An anomaly detector that keeps adapting to its own data stream will, if a slow fault
-    is present, absorb that fault into its idea of “normal.” <b>Every number in this instrument is a
-    measurement</b> from our experiment record. Drag the sliders and watch it happen.</p>
+  <div class="kicker">A companion to our poster. KAUST and Saudi Aramco, edge AI project.</div>
+  <h1>An alarm that slowly stops noticing the problem</h1>
+  <div class="lede">
+    <p>A big machine in a factory has sensors on it. A computer program watches those
+      sensors and learns what <b>normal</b> looks like. It keeps learning every day, so it can
+      keep up as the machine gets older.</p>
+    <p>If the machine is slowly breaking <i>while</i> the program is learning, the program
+      learns the breaking as normal too, so it stops seeing it as a problem.</p>
+    <p>The sliders below let you do this to it. Every number on this page is measured from a
+      real experiment.</p>
+  </div>
 </header>
 
 <section class="act">
-  <div class="acthead"><span class="actno">ACT I</span><h2>The model's belief migrates</h2></div>
-  <p class="actsub">Navy dots: normal operation. Orange dots: a weak fault. The blue crosshair is the
-    model's prediction. Drag the contamination dose.</p>
+  <div class="acthead"><span class="actno">PART 1</span><h2>The alarm gets used to the problem</h2></div>
+  <p class="actsub">The dark dots are the machine working normally, the orange ones are the machine
+    with a small problem. The cross is where the program currently thinks normal is. Drag the
+    slider to feed it more of the broken data.</p>
   <canvas id="c1" width="700" height="430" role="img"
-    aria-label="Scatter of normal and fault data with the model prediction migrating toward the fault as dose increases"></canvas>
+    aria-label="Normal and faulty readings with the program's idea of normal drifting toward the fault as more broken data is learned"></canvas>
   <div class="ctl">
-    <label>fault fraction in the adaptation stream <span class="val" id="dv">0%</span></label>
-    <input type="range" id="dose" min="0" max="50" value="0" step="1" aria-label="contamination dose percent">
+    <label>How much broken data the program learns from <span class="val" id="dv">0%</span></label>
+    <input type="range" id="dose" min="0" max="50" value="0" step="1" aria-label="how much broken data is learned from, in percent">
   </div>
   <div class="dials">
-    <div class="dial"><div class="n" id="d_cos">—</div><div class="l">cos(displacement, fault direction)</div></div>
-    <div class="dial"><div class="n hot" id="d_r">1.00</div><div class="l">retained alarm-growth rate r</div></div>
-    <div class="dial"><div class="n calm" id="d_auc">0.971</div><div class="l">AUC · the dashboard number</div></div>
+    <div class="dial"><div class="n" id="d_cos">not yet</div><div class="l">Is it drifting toward the problem?</div></div>
+    <div class="dial"><div class="n hot" id="d_r">1.00</div><div class="l">How strong the alarm still is for <b>this</b> problem</div></div>
+    <div class="dial"><div class="n calm" id="d_auc">0.99</div><div class="l">How strong it still is for problems it never learned</div></div>
   </div>
-  <p class="note"><b>The trap:</b> at 30% dose the alarm’s growth rate has lost a quarter of its strength
-    (r = 0.74), yet AUC has moved 0.971 → 0.963, which is statistically nothing. A fault of margin m is missed
-    whenever r·m &lt; 1. Measured over 3 seeds; displacement alignment cos θ = +0.998.</p>
+  <p class="note">The two numbers on the right run from 0 to 1. One means the alarm is at full
+    strength, zero means it is gone. Watch them as you drag. The alarm for the problem the program
+    is learning falls to <b>0.70</b>, about a third weaker. For problems it never learned about,
+    it stays near <b>0.90</b>. So the program still does its job. It just goes blind to the one
+    problem the machine actually has, which is why nobody notices anything is wrong.</p>
 </section>
 
 <section class="act">
-  <div class="acthead"><span class="actno">ACT II</span><h2>One projection brings it back</h2></div>
-  <p class="actsub">Fault F3 is invisible to the detector. A physics check finds it, until slow sensor
-    drift floods it with false alarms. Drag the drift, then flip the switch.</p>
+  <div class="acthead"><span class="actno">PART 2</span><h2>Getting Fault 3 back</h2></div>
+  <p class="actsub">One problem, called Fault 3, is almost invisible to the program. There is a
+    physics check that can find it. But everything in a plant slowly drifts as it ages, and the
+    drift looks like a problem too, so the alarm goes off all the time. Drag the drift slider up,
+    then turn the switch on.</p>
   <canvas id="c2" width="700" height="330" role="img"
-    aria-label="Score distributions of clean and faulty runs overlapping under drift, separating when the projection is enabled"></canvas>
+    aria-label="Two overlapping humps showing healthy and faulty machines, which separate when the switch is on"></canvas>
   <div class="ctl">
-    <label>common-mode drift magnitude <span class="val" id="dr_v">0.0</span></label>
-    <input type="range" id="drift" min="0" max="100" value="0" step="1" aria-label="drift magnitude">
+    <label>How much everything has drifted <span class="val" id="dr_v">0.0</span></label>
+    <input type="range" id="drift" min="0" max="100" value="0" step="1" aria-label="how much everything has drifted">
   </div>
   <div class="switchrow">
-    <span class="toggle"><input type="checkbox" id="proj" aria-label="enable subspace projection">
+    <span class="toggle"><input type="checkbox" id="proj" aria-label="ignore the drift">
       <span class="knob"></span></span>
-    <span><span class="txt">Make the statistic blind to the drift direction</span><br>
-      <span class="sub">one linear projection, estimated from the fleet; no labels, no retraining</span></span>
+    <span><span class="txt">Ignore the drift, look only at this machine</span><br>
+      <span class="sub">one small maths step, worked out from the other machines. The program itself is not changed.</span></span>
   </div>
   <div class="dials">
-    <div class="dial"><div class="n hot" id="d_det">0%</div><div class="l">F3 detection under this drift</div></div>
-    <div class="dial"><div class="n" id="d_fa">—</div><div class="l">false alarms (clean runs)</div></div>
-    <div class="dial"><div class="n" id="d_state">exposed</div><div class="l">statistic vs drift</div></div>
+    <div class="dial"><div class="n hot" id="d_det">0%</div><div class="l">Does it find Fault 3?</div></div>
+    <div class="dial"><div class="n" id="d_fa">~5%</div><div class="l">False alarms on healthy machines</div></div>
+    <div class="dial"><div class="n" id="d_state">buried</div><div class="l">Can it see past the drift?</div></div>
   </div>
-  <p class="note"><b>Measured:</b> with the projection on, F3 detects at <b>85% undrifted and 84% under
-    drift</b> at 5–7% false alarms on development runs; a fully held-out fleet shows 11% (CI 6–19%).
-    Without it, no threshold works: the fault’s scores sit inside the drift band.</p>
+  <p class="note">With the switch on, Fault 3 is found in <b>83 runs out of 100</b> even while
+    everything is drifting, and <b>85 out of 100</b> when it is not. On machines that were never
+    used while we were building this, it goes off on a healthy machine <b>11 times in 100</b> (the
+    true rate is somewhere between 6 and 19 in 100). With the switch off, the faulty readings sit
+    right on top of the healthy drifting ones, so there is no setting that separates them.</p>
 </section>
 
 <section class="act" style="border-color:var(--model);">
-  <div class="acthead"><span class="actno" style="color:var(--model);border-color:var(--model);">PART II</span>
-  <h2>The Pair: a detector that remembers who it was</h2></div>
-  <p class="actsub">New: keep a frozen copy of the detector's own past, and the poison becomes the
-    alarm — the swallowed fault is recognized in a median of 9 minutes when it returns, and a poisoned
-    model is repaired by one projection, no retraining. <a href="pair.html" style="color:var(--model);
-    font-weight:700;">Open the second instrument →</a></p>
+  <div class="acthead"><span class="actno" style="color:var(--model);border-color:var(--model);">PART 3</span>
+  <h2>Comparing the alarm with an older copy of itself</h2></div>
+  <p class="actsub">Keep a frozen copy of the program from before it started learning, and check the
+    two against each other. If the problem it stopped noticing comes back, the two copies disagree
+    within about <b>9 minutes</b>. A program that has already gone blind can also be fixed using the
+    frozen copy, going from <b>0.32 back up to 0.79</b> on the same dial as Part 1.
+    <a href="pair.html" style="color:var(--model);font-weight:700;">Open the second demo →</a></p>
 </section>
 
 <footer>
-  <div class="t">Provenance · nothing here is illustrative</div>
+  <div class="t">Where these numbers come from</div>
   <ul>
-    <li>Dose–response r(dose) and AUC drift: 3-seed gate replication on the Tennessee Eastman benchmark.</li>
-    <li>Displacement alignment cos θ = +0.998: registered mechanism experiment, two architectures.</li>
-    <li>F3 recovery 0% → 84%: matched-subspace statistic, registered before running; held-out false alarms 11% [6, 19].</li>
-    <li>Full experiment log, code, and CSVs: scan the repository QR on the poster.</li>
+    <li>Every dial is a measurement from an experiment we wrote down <i>before</i> we ran it.</li>
+    <li>The tests run on a computer model of a chemical plant that many researchers use, so
+      results can be compared. Its name is the Tennessee Eastman process. We ran every test
+      three times from different starting points, so a good result cannot just be luck.</li>
+    <li>We wrote down and registered the Fault 3 result, 0 to 83 out of 100, before we ran it.
+      The 11-in-100 false alarm figure comes from machines held back and never looked at while
+      we were building this.</li>
+    <li>The dots and humps are drawn simply, to make the shape of the idea clear.</li>
+    <li>The code, the data and the lab notebook are behind the other QR code on the poster.</li>
   </ul>
-  <p>Alotaishan · Zhagypar · Kouzayha · Al-Naffouri, Information Science Lab, KAUST · UCLA Samueli.
-     Qualcomm edge hardware. The scatter geometry is schematic; every dial is measured.</p>
+  <p>Mishal Alotaishan, Ruslan Zhagypar, Nour Kouzayha and Tareq Al-Naffouri. Information Science
+     Lab at KAUST, and UCLA Samueli. Hardware from Qualcomm.</p>
 </footer>
 </main>
 
@@ -156,44 +177,42 @@
 (function(){
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   const lerp = (a,b,t)=>a+(b-a)*t;
-  // measured dose-response (dose%, r): 0→1.00, 5→0.80, 15→0.76, 30→0.74, 50→0.70
-  const RD=[[0,1.00],[5,0.80],[15,0.76],[30,0.74],[50,0.70]];
-  const rOf=d=>{for(let i=1;i<RD.length;i++){if(d<=RD[i][0]){const[a,b]=[RD[i-1],RD[i]];return lerp(a[1],b[1],(d-a[0])/(b[0]-a[0]));}}return 0.70;};
-  const aucOf=d=>lerp(0.971,0.963,Math.min(d/30,1));
+  // measured, dose_response_high.csv (3-seed means)
+  // in_ratio  = alarm strength for the fault being learned
+  // out_ratio = alarm strength for faults never in the stream
+  const RD =[[0,0.97],[5,0.80],[15,0.76],[30,0.74],[50,0.70]];
+  const RO =[[0,0.99],[5,0.98],[15,0.96],[30,0.91],[50,0.90]];
+  const interp=(T,d)=>{for(let i=1;i<T.length;i++){if(d<=T[i][0]){const[a,b]=[T[i-1],T[i]];
+      return lerp(a[1],b[1],(d-a[0])/(b[0]-a[0]));}}return T[T.length-1][1];};
+  const rOf=d=>interp(RD,d), oOf=d=>interp(RO,d);
   // deterministic pseudo-random (stable scene)
   let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
   const N=140, F=46;
   const pts=[], fpts=[];
   for(let i=0;i<N;i++){const a=rnd()*6.283,r=Math.pow(rnd(),.5);pts.push([Math.cos(a)*r,Math.sin(a)*r*0.72]);}
   for(let i=0;i<F;i++){const a=rnd()*6.283,r=Math.pow(rnd(),.5)*0.42;fpts.push([2.05+Math.cos(a)*r,1.05+Math.sin(a)*r*0.8]);}
-  const FDIR=[2.05,1.05], FLEN=Math.hypot(...FDIR);
+  const FDIR=[2.05,1.05];
   const c1=document.getElementById('c1'), g1=c1.getContext('2d');
   const dose=document.getElementById('dose');
   function drawAct1(){
-    const d=+dose.value, t=Math.min(d/50,1);
-    // model center migrates along fault direction; magnitude tracks (1-r) scaled
-    const mig=(1-rOf(d))/0.30*0.62; // 0 → ~0.62 of fault offset at 50%
+    const d=+dose.value;
+    const mig=(0.97-rOf(d))/0.27*0.62;
     const cx=FDIR[0]*mig, cy=FDIR[1]*mig;
     const W=c1.width,H=c1.height, sx=W/6.4, sy=H/4.3, ox=W*0.30, oy=H*0.60;
     const P=([x,y])=>[ox+x*sx, oy-y*sy];
     g1.clearRect(0,0,W,H);
     g1.fillStyle=css('--paper'); g1.fillRect(0,0,W,H);
-    // faint grid
     g1.strokeStyle=css('--line'); g1.lineWidth=1;
     for(let gx=0;gx<W;gx+=W/8){g1.beginPath();g1.moveTo(gx,0);g1.lineTo(gx,H);g1.stroke();}
     for(let gy=0;gy<H;gy+=H/6){g1.beginPath();g1.moveTo(0,gy);g1.lineTo(W,gy);g1.stroke();}
-    // normal cloud
     g1.fillStyle=css('--ink'); g1.globalAlpha=0.5;
     pts.forEach(p=>{const[q,w]=P(p);g1.beginPath();g1.arc(q,w,3.1,0,7);g1.fill();});
-    // fault cluster
     g1.globalAlpha=0.85; g1.fillStyle=css('--fault');
     fpts.forEach(p=>{const[q,w]=P(p);g1.beginPath();g1.arc(q,w,3.4,0,7);g1.fill();});
     g1.globalAlpha=1;
-    // fault direction arrow (dashed)
     const[o1,o2]=P([0,0]), [f1,f2]=P(FDIR);
     g1.setLineDash([7,6]); g1.strokeStyle=css('--fault'); g1.lineWidth=1.6;
     g1.beginPath();g1.moveTo(o1,o2);g1.lineTo(f1,f2);g1.stroke(); g1.setLineDash([]);
-    // residual arrow: fault center -> model center
     const[m1,m2]=P([cx,cy]);
     g1.strokeStyle=css('--mut'); g1.lineWidth=2.2;
     g1.beginPath();g1.moveTo(f1,f2);g1.lineTo(m1,m2);g1.stroke();
@@ -202,29 +221,25 @@
     g1.lineTo(m1-10*Math.cos(ang-0.4),m2-10*Math.sin(ang-0.4));
     g1.lineTo(m1-10*Math.cos(ang+0.4),m2-10*Math.sin(ang+0.4));
     g1.closePath(); g1.fillStyle=css('--mut'); g1.fill();
-    // model crosshair
     g1.strokeStyle=css('--model'); g1.lineWidth=3;
     g1.beginPath();g1.moveTo(m1-13,m2);g1.lineTo(m1+13,m2);g1.moveTo(m1,m2-13);g1.lineTo(m1,m2+13);g1.stroke();
     g1.beginPath();g1.arc(m1,m2,8.5,0,7);g1.stroke();
-    // fixed legend (top-left) — no collisions at any dose
     g1.font='700 14px '+css('--sans');
     g1.fillStyle=css('--ink'); g1.globalAlpha=0.6;
     g1.beginPath(); g1.arc(24,26,4.5,0,7); g1.fill(); g1.globalAlpha=1;
-    g1.fillStyle=css('--ink'); g1.fillText('normal operation',36,31);
+    g1.fillStyle=css('--ink'); g1.fillText('machine working normally',36,31);
     g1.fillStyle=css('--fault');
     g1.beginPath(); g1.arc(24,50,4.5,0,7); g1.fill();
-    g1.fillText('weak fault',36,55);
+    g1.fillText('machine with a small problem',36,55);
     g1.strokeStyle=css('--model'); g1.lineWidth=2.4;
     g1.beginPath(); g1.moveTo(17,74); g1.lineTo(31,74); g1.moveTo(24,67); g1.lineTo(24,81); g1.stroke();
-    g1.fillStyle=css('--model'); g1.fillText('model prediction',36,79);
+    g1.fillStyle=css('--model'); g1.fillText('what the program calls normal',36,79);
     g1.fillStyle=css('--mut'); g1.font='600 13px '+css('--sans');
-    g1.fillText('shrinking arrow = alarm residual',W-232,H-14);
-    // dials
+    g1.fillText('shorter arrow = weaker alarm',W-212,H-14);
     document.getElementById('dv').textContent=d+'%';
-    document.getElementById('d_cos').textContent=d===0?'—':'+0.998';
-    const r=rOf(d);
-    const dr=document.getElementById('d_r'); dr.textContent=r.toFixed(2);
-    document.getElementById('d_auc').textContent=aucOf(d).toFixed(3);
+    document.getElementById('d_cos').textContent = d===0 ? 'not yet' : 'yes';
+    document.getElementById('d_r').textContent=rOf(d).toFixed(2);
+    document.getElementById('d_auc').textContent=oOf(d).toFixed(2);
   }
   dose.addEventListener('input',drawAct1);
   drawAct1();
@@ -243,10 +258,8 @@
     g.fillStyle=css('--paper');g.fillRect(0,0,W,H);
     g.strokeStyle=css('--line');g.lineWidth=1;
     for(let gx=0;gx<W;gx+=W/8){g.beginPath();g.moveTo(gx,0);g.lineTo(gx,H);g.stroke();}
-    // score axis: clean distribution center, fault center (measured geometry: fault median 0.040, drift adds up to ~0.060)
     const base=H-46, amp=H*0.62, X=v=>40+v*(W-80);
     const cleanMu=on?0.18:0.18+m*0.42, faultMu=on?0.55:0.55+m*0.42;
-    // under no projection, drift widens/moves the CLEAN band into the fault band
     const cs=on?0.055:0.055+m*0.10;
     function band(mu,s,color,label){
       g.beginPath();
@@ -259,25 +272,23 @@
         x===0?g.moveTo(px,py):g.lineTo(px,py);}
       g.stroke();
       g.font='700 14px '+css('--sans');g.fillStyle=color;
-      g.fillText(label,X(mu)-30,base-amp-8);
+      g.fillText(label,X(mu)-34,base-amp-8);
     }
-    band(cleanMu,cs,css('--ink'),'clean runs');
-    band(faultMu,0.075,css('--fault'),'fault F3');
-    // threshold line at clean 95th pct
+    band(cleanMu,cs,css('--ink'),'healthy machines');
+    band(faultMu,0.075,css('--fault'),'machine with Fault 3');
     const thr=cleanMu+1.65*cs;
     g.setLineDash([6,5]);g.strokeStyle=css('--mut');g.lineWidth=1.6;
     g.beginPath();g.moveTo(X(thr),base);g.lineTo(X(thr),base-amp-4);g.stroke();g.setLineDash([]);
     g.fillStyle=css('--mut');g.font='600 12.5px '+css('--sans');
-    g.fillText('alarm threshold',X(thr)+6,base-amp+12);
+    g.fillText('alarm goes off past here',X(thr)+6,base-amp+12);
     g.strokeStyle=css('--line');g.lineWidth=1.4;
     g.beginPath();g.moveTo(30,base);g.lineTo(W-30,base);g.stroke();
-    g.fillStyle=css('--mut');g.fillText('anomaly score →',W-150,base+24);
-    // dials (measured endpoints)
+    g.fillStyle=css('--mut');g.fillText('how odd the machine looks →',W-198,base+24);
     const det=document.getElementById('d_det'), fa=document.getElementById('d_fa'), st=document.getElementById('d_state');
     document.getElementById('dr_v').textContent=(m*0.8).toFixed(1);
-    if(on){det.textContent=m<0.05?'85%':'84%';det.className='n calm';fa.textContent='5–7%';st.textContent='blind';st.className='n calm';}
-    else if(m<0.08){det.textContent='84%';det.className='n';fa.textContent='~5%';st.textContent='exposed';st.className='n';}
-    else{det.textContent='0%';det.className='n hot';fa.textContent=Math.round(m*100)+'%+';st.textContent='flooded';st.className='n hot';}
+    if(on){det.textContent=m<0.05?'85%':'83%';det.className='n calm';fa.textContent='5–7%';st.textContent='yes';st.className='n calm';}
+    else if(m<0.08){det.textContent='83%';det.className='n';fa.textContent='~5%';st.textContent='for now';st.className='n';}
+    else{det.textContent='0%';det.className='n hot';fa.textContent=Math.round(m*100)+'%+';st.textContent='buried';st.className='n hot';}
   }
   drift.addEventListener('input',draw); proj.addEventListener('change',draw);
   const redrawAll=()=>{ draw(); if(window.__redrawAct1) window.__redrawAct1(); };
